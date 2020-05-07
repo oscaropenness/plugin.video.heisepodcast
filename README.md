@@ -1,2 +1,8 @@
-# plugin.video.heiseshowrss
-Kodi video plugin for the weekly video podcast of heise online.
+# plugin.video.heisepodcast
+Kodi video plugin for all the podcasts of heise and c't
+
+## Heise Podcasts
+- heiseshow
+- c't uplink
+- Nachgehakt
+- Kurz informiert
