@@ -1,5 +1,5 @@
 
-from resources.lib import heiseshowrss
+from resources.lib import heisepodcast
 
 if __name__ == '__main__':
-    heiseshowrss.run()
+    heisepodcast.run()
