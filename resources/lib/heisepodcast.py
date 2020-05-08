@@ -11,6 +11,8 @@ import xbmcgui
 import xbmcplugin
 import xbmcaddon
 import feedparser
+from bs4 import BeautifulSoup
+import requests
 
 def run():
     #Selbst-Referenzierung fürs Plug-in
@@ -39,6 +41,11 @@ def run():
         
         url = build_url({'mode': 'folder', 'foldername': 'kurzinformiert'})
         li = xbmcgui.ListItem('Kurz informiert', iconImage='DefaultFolder.png')
+        xbmcplugin.addDirectoryItem(handle=addon_handle, url=url,
+                                    listitem=li, isFolder=True)
+        
+        url = build_url({'mode': 'folder', 'foldername': 'nachgehakt'})
+        li = xbmcgui.ListItem('Nachgehakt', iconImage='DefaultFolder.png')
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=url,
                                     listitem=li, isFolder=True)
 
@@ -118,6 +125,42 @@ def run():
 
                     try:
                         thumb = item['image'].href
+                    except:
+                        thumb = "https://heise.cloudimg.io/bound/480x270/q75.png-lossy-75.webp-lossy-75.foil1/_www-heise-de_/ct/imgs/04/1/4/2/6/3/2/5/9cc02d4fe2a3a731.jpeg"
+                
+                    list_item = xbmcgui.ListItem(label=title, label2=summary)
+                
+                    #Fanart des Plug-ins als Hintergrundbild nutzen
+                    ctuplink_plugin = xbmcaddon.Addon('plugin.video.ctuplinkrss')
+                    list_item.setArt({'fanart': ctuplink_plugin.getAddonInfo('fanart'), 'thumb': thumb})
+                    
+                    list_item.setProperty('IsPlayable', 'true')            
+                    list_item.setInfo('video', {'plot': summary, 'aired': date})
+                    listing.append((url, list_item, False))    
+                        
+                xbmcplugin.addDirectoryItems(addon_handle, listing, len(listing))
+                xbmcplugin.endOfDirectory(addon_handle, succeeded=True)
+        
+        elif foldername == 'nachgehakt':
+                #generate kurz informiert list
+                URL = 'https://www.heise.de/ct/entdecken/?hauptrubrik=%40ctmagazin&unterrubrik=nachgehakt'
+                page = requests.get(URL)
+
+                soup = BeautifulSoup(page.content, 'html.parser')
+                art_elems = soup.find_all('article')
+
+                d = feedparser.parse('https://www.heise.de/rss/topnews-video.rss')
+                
+                listing = []
+                
+                for item in art_elems[0:10]:
+                    title = item.h3.text
+                    url = art_elems[0].find_all('a')[1]['href']
+                    date = item.find('li', class_='teaser_date').text
+                    summary = item.find('div', class_='teaser_text').text
+
+                    try:
+                        thumb = item.img['src']
                     except:
                         thumb = "https://heise.cloudimg.io/bound/480x270/q75.png-lossy-75.webp-lossy-75.foil1/_www-heise-de_/ct/imgs/04/1/4/2/6/3/2/5/9cc02d4fe2a3a731.jpeg"
                 
