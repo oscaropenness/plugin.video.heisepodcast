@@ -36,12 +36,18 @@ def run():
         li = xbmcgui.ListItem('c\'t uplink', iconImage='DefaultFolder.png')
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=url,
                                     listitem=li, isFolder=True)
+        
+        url = build_url({'mode': 'folder', 'foldername': 'kurzinformiert'})
+        li = xbmcgui.ListItem('Kurz informiert', iconImage='DefaultFolder.png')
+        xbmcplugin.addDirectoryItem(handle=addon_handle, url=url,
+                                    listitem=li, isFolder=True)
 
         xbmcplugin.endOfDirectory(addon_handle)
 
     elif mode[0] == 'folder':
         foldername = args['foldername'][0]
         if foldername == 'heiseshow':
+            #generate heiseshow list
             d = feedparser.parse('http://www.heise.de/heiseshowhd.rss')
             listing = []
             
@@ -69,8 +75,38 @@ def run():
             xbmcplugin.addDirectoryItems(addon_handle, listing, len(listing))
             xbmcplugin.endOfDirectory(addon_handle, succeeded=True)
         elif foldername == 'ctuplink':
-                #Parse ctuplink-Feed
+                #generate c't uplink list
                 d = feedparser.parse('https://blog.ct.de/ctuplink/ctuplinkvideohd.rss')
+                
+                listing = []
+                
+                for item in d['entries']:
+                    title = item['title']
+                    url = item.enclosures[0].href
+                    date = item['published']
+                    summary = item['description']
+
+                    try:
+                        thumb = item['image'].href
+                    except:
+                        thumb = "https://heise.cloudimg.io/bound/480x270/q75.png-lossy-75.webp-lossy-75.foil1/_www-heise-de_/ct/imgs/04/1/4/2/6/3/2/5/9cc02d4fe2a3a731.jpeg"
+                
+                    list_item = xbmcgui.ListItem(label=title, label2=summary)
+                
+                    #Fanart des Plug-ins als Hintergrundbild nutzen
+                    ctuplink_plugin = xbmcaddon.Addon('plugin.video.ctuplinkrss')
+                    list_item.setArt({'fanart': ctuplink_plugin.getAddonInfo('fanart'), 'thumb': thumb})
+                    
+                    list_item.setProperty('IsPlayable', 'true')            
+                    list_item.setInfo('video', {'plot': summary, 'aired': date})
+                    listing.append((url, list_item, False))    
+                        
+                xbmcplugin.addDirectoryItems(addon_handle, listing, len(listing))
+                xbmcplugin.endOfDirectory(addon_handle, succeeded=True)
+
+        elif foldername == 'kurzinformiert':
+                #generate kurz informiert list
+                d = feedparser.parse('https://www.heise.de/rss/topnews-video.rss')
                 
                 listing = []
                 
